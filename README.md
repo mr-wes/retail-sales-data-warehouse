@@ -36,15 +36,15 @@ The warehouse contains customer, product, region, and date dimensions connected 
 
 
 
-* **Python** â€” ETL development and data validation.
+* **Python** — ETL development and data validation.
 
-* **pandas** â€” CSV processing, data cleaning, and transformation.
+* **pandas** — CSV processing, data cleaning, and transformation.
 
-* **SQLite** â€” relational data warehouse.
+* **SQLite** — relational data warehouse.
 
-* **SQL** â€” analytical queries and business reporting.
+* **SQL** — analytical queries and business reporting.
 
-* **PowerShell** â€” project execution and validation on Windows.
+* **PowerShell** — project execution and validation on Windows.
 
 
 
@@ -58,19 +58,19 @@ The warehouse follows a star schema consisting of one fact table and four dimens
 
 ```text
 
-&#x20;                   dim\_date
+                    dim_date
 
-&#x20;                      |
+                       |
 
-&#x20;                      |
+                       |
 
-dim\_customer ---- fact\_sales ---- dim\_product
+dim_customer ---- fact_sales ---- dim_product
 
-&#x20;                      |
+                       |
 
-&#x20;                      |
+                       |
 
-&#x20;                  dim\_region
+                   dim_region
 
 ```
 
@@ -80,7 +80,7 @@ dim\_customer ---- fact\_sales ---- dim\_product
 
 
 
-**`fact\_sales`**
+**`fact_sales`**
 
 
 
@@ -92,29 +92,29 @@ Key columns:
 
 
 
-* `sales\_key`
+* `sales_key`
 
-* `order\_id`
+* `order_id`
 
-* `date\_key`
+* `date_key`
 
-* `customer\_key`
+* `customer_key`
 
-* `product\_key`
+* `product_key`
 
-* `region\_key`
+* `region_key`
 
 * `quantity`
 
-* `unit\_price\_kes`
+* `unit_price_kes`
 
-* `discount\_pct`
+* `discount_pct`
 
-* `revenue\_kes`
+* `revenue_kes`
 
 
 
-Each order is uniquely identified by `order\_id`.
+Each order is uniquely identified by `order_id`.
 
 
 
@@ -126,13 +126,13 @@ Each order is uniquely identified by `order\_id`.
 
 | -------------- | ---------------------------------------------------------------- |
 
-| `dim\_date`     | Calendar date, year, month, month name, and quarter              |
+| `dim_date`     | Calendar date, year, month, month name, and quarter              |
 
-| `dim\_customer` | Customer identifiers and customer segments                       |
+| `dim_customer` | Customer identifiers and customer segments                       |
 
-| `dim\_product`  | Product identifiers, names, and categories                       |
+| `dim_product`  | Product identifiers, names, and categories                       |
 
-| `dim\_region`   | Sales region names, including `Unknown` when a region is missing |
+| `dim_region`   | Sales region names, including `Unknown` when a region is missing |
 
 
 
@@ -144,7 +144,7 @@ The pipeline reads the sample sales dataset from:
 
 
 
-`../shared\_sample\_sales.csv`
+`../shared_sample_sales.csv`
 
 
 
@@ -160,7 +160,7 @@ The ETL process validates the required columns and converts dates and numeric fi
 
 
 
-The pipeline is implemented in `load\_warehouse.py`.
+The pipeline is implemented in `load_warehouse.py`.
 
 
 
@@ -168,23 +168,23 @@ Its main stages are:
 
 
 
-1\. **Extract** â€” read the source CSV file.
+1\. **Extract** — read the source CSV file.
 
-2\. **Validate** â€” check required columns, dates, transaction identifiers, and numeric values.
+2\. **Validate** — check required columns, dates, transaction identifiers, and numeric values.
 
-3\. **Deduplicate** â€” remove exact duplicate records.
+3\. **Deduplicate** — remove exact duplicate records.
 
-4\. **Handle missing data** â€” replace missing descriptive values with `Unknown` where appropriate.
+4\. **Handle missing data** — replace missing descriptive values with `Unknown` where appropriate.
 
-5\. **Recover revenue** â€” calculate missing revenue when quantity, unit price, and discount are available.
+5\. **Recover revenue** — calculate missing revenue when quantity, unit price, and discount are available.
 
-6\. **Validate calculations** â€” compare stored revenue against quantity multiplied by unit price and adjusted for discount.
+6\. **Validate calculations** — compare stored revenue against quantity multiplied by unit price and adjusted for discount.
 
-7\. **Transform** â€” construct the date, customer, product, and region dimensions and map their keys into the fact table.
+7\. **Transform** — construct the date, customer, product, and region dimensions and map their keys into the fact table.
 
-8\. **Load** â€” create a new SQLite warehouse and populate the dimension and fact tables.
+8\. **Load** — create a new SQLite warehouse and populate the dimension and fact tables.
 
-9\. **Verify** â€” check fact-table row counts and foreign-key integrity before replacing the existing database.
+9\. **Verify** — check fact-table row counts and foreign-key integrity before replacing the existing database.
 
 
 
@@ -312,7 +312,7 @@ The following findings were calculated from the 498 transactions in the warehous
 
 
 
-May was the strongest month in the available Januaryâ€“June 2026 data.
+May was the strongest month in the available January-June 2026 data.
 
 
 
@@ -364,11 +364,11 @@ Electronics was the leading category, contributing approximately 63.4% of total 
 
 
 
-* **Highest revenue:** USB-C Hub â€” KES 1,193,440.
+* **Highest revenue:** USB-C Hub — KES 1,193,440.
 
-* **Second-highest revenue:** Keyboard â€” KES 1,064,140.
+* **Second-highest revenue:** Keyboard — KES 1,064,140.
 
-* **Highest units sold:** Notebook â€” 514 units.
+* **Highest units sold:** Notebook — 514 units.
 
 
 
@@ -428,16 +428,12 @@ Revenue increased by approximately 17.7% from Q1 to Q2. The available data cover
 
 ```text
 
-02\_sales\_warehouse/
-
-â”œâ”€â”€ load\_warehouse.py
-
-â”œâ”€â”€ queries.sql
-
-â”œâ”€â”€ README.md
-
-â””â”€â”€ sales\_warehouse.db
-
+02_sales_warehouse/
++-- load_warehouse.py
++-- run_queries.py
++-- queries.sql
++-- README.md
+`-- sales_warehouse.db
 ```
 
 
@@ -450,7 +446,7 @@ The source CSV and shared Python virtual environment are located in the parent p
 
 
 
-Run these commands from the `02\_sales\_warehouse` directory in PowerShell.
+Run these commands from the `02_sales_warehouse` directory in PowerShell.
 
 
 
@@ -460,13 +456,13 @@ Run these commands from the `02\_sales\_warehouse` directory in PowerShell.
 
 ```powershell
 
-\& "..\\.venv\\Scripts\\python.exe" .\\load\_warehouse.py
+& "..\.venv\Scripts\python.exe" .\load_warehouse.py
 
 ```
 
 
 
-The script reads the source CSV, validates the records, and rebuilds `sales\_warehouse.db`.
+The script reads the source CSV, validates the records, and rebuilds `sales_warehouse.db`.
 
 
 
@@ -494,21 +490,21 @@ import sqlite3
 
 
 
-with sqlite3.connect("sales\_warehouse.db") as conn:
+with sqlite3.connect("sales_warehouse.db") as conn:
 
-&#x20;   print("Fact rows:", conn.execute(
+    print("Fact rows:", conn.execute(
 
-&#x20;       "SELECT COUNT(*) FROM fact\_sales"
+        "SELECT COUNT(*) FROM fact_sales"
 
-&#x20;   ).fetchone()\[0])
+    ).fetchone()\[0])
 
 
 
-&#x20;   print("Foreign-key violations:",
+    print("Foreign-key violations:",
 
-&#x20;         conn.execute("PRAGMA foreign\_key\_check").fetchall())
+          conn.execute("PRAGMA foreign_key_check").fetchall())
 
-'@ | \& "..\\.venv\\Scripts\\python.exe" -
+'@ | & "..\.venv\Scripts\python.exe" -
 
 ```
 
@@ -545,6 +541,7 @@ Potential extensions include:
 
 
 This project demonstrates an end-to-end data engineering workflow: extracting and cleaning raw sales data, applying data-quality rules, transforming it into a dimensional model, loading a SQLite warehouse, validating data integrity, and using SQL to generate actionable business insights.
+
 
 
 
