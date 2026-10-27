@@ -299,6 +299,4 @@ Potential extensions to the project include:
 
 **GitHub:** [mr-wes](https://github.com/mr-wes)
 
-## License
 
-No license has been specified for this project. Refer to the repository's licensing terms before reusing or redistributing its contents.
