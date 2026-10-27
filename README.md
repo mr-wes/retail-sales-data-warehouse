@@ -1,549 +1,304 @@
-﻿# Retail Sales Data Warehouse
+# Retail Sales Data Warehouse
 
-
+A data engineering and analytics project that transforms raw retail sales data into a structured SQLite data warehouse and delivers business insights through SQL analytics and an interactive Power BI dashboard.
 
 ## Project Overview
 
+This project demonstrates an end-to-end retail data workflow, from raw CSV ingestion and data cleaning to dimensional modelling, analytical SQL queries, and business intelligence reporting.
 
+The warehouse enables analysis of sales performance across products, customers, regions, and time.
 
-This project builds a relational sales data warehouse using SQLite and Python. It transforms raw retail transaction data into a structured star schema to support business intelligence, sales analysis, and data-driven decision-making.
+### Objectives
 
-
-
-The warehouse contains customer, product, region, and date dimensions connected to a central sales fact table. An ETL pipeline cleans and validates source data before loading the warehouse, while SQL queries provide analytical insights into sales performance.
-
-
-
-## Objectives
-
-
-
-* Build a dimensional data warehouse using a star schema.
-
-* Develop a reproducible ETL pipeline using Python and pandas.
-
-* Implement data-quality checks and revenue reconciliation.
-
-* Preserve valid transactions when descriptive fields are missing.
-
-* Analyse revenue, product performance, customer segments, and regional sales.
-
-* Validate warehouse integrity using SQLite constraints and foreign-key checks.
-
-
+* Build a reliable ETL pipeline for retail sales data.
+* Clean and validate source data before loading it into the warehouse.
+* Design a dimensional data model for analytical queries.
+* Store structured sales data in SQLite.
+* Use SQL to answer business questions about revenue, transactions, products, and customers.
+* Develop an interactive Power BI dashboard for business reporting.
 
 ## Technology Stack
 
-
-
-* **Python** — ETL development and data validation.
-
-* **pandas** — CSV processing, data cleaning, and transformation.
-
-* **SQLite** — relational data warehouse.
-
-* **SQL** — analytical queries and business reporting.
-
-* **PowerShell** — project execution and validation on Windows.
-
-
-
-## Data Warehouse Architecture
-
-
-
-The warehouse follows a star schema consisting of one fact table and four dimension tables.
-
-
-
-```text
-
-                    dim_date
-
-                       |
-
-                       |
-
-dim_customer ---- fact_sales ---- dim_product
-
-                       |
-
-                       |
-
-                   dim_region
-
-```
-
-
-
-### Fact Table
-
-
-
-**`fact_sales`**
-
-
-
-Stores transaction-level sales measures and foreign keys to the dimensions.
-
-
-
-Key columns:
-
-
-
-* `sales_key`
-
-* `order_id`
-
-* `date_key`
-
-* `customer_key`
-
-* `product_key`
-
-* `region_key`
-
-* `quantity`
-
-* `unit_price_kes`
-
-* `discount_pct`
-
-* `revenue_kes`
-
-
-
-Each order is uniquely identified by `order_id`.
-
-
-
-### Dimension Tables
-
-
-
-| Table          | Purpose                                                          |
-
-| -------------- | ---------------------------------------------------------------- |
-
-| `dim_date`     | Calendar date, year, month, month name, and quarter              |
-
-| `dim_customer` | Customer identifiers and customer segments                       |
-
-| `dim_product`  | Product identifiers, names, and categories                       |
-
-| `dim_region`   | Sales region names, including `Unknown` when a region is missing |
-
-
-
-## Source Data
-
-
-
-The pipeline reads the sample sales dataset from:
-
-
-
-`../shared_sample_sales.csv`
-
-
-
-The source includes order dates, customer details, product information, regions, quantities, unit prices, discounts, and revenue values in Kenyan shillings (KES).
-
-
-
-The ETL process validates the required columns and converts dates and numeric fields to appropriate types.
-
-
-
-## ETL Pipeline
-
-
-
-The pipeline is implemented in `load_warehouse.py`.
-
-
-
-Its main stages are:
-
-
-
-1\. **Extract** — read the source CSV file.
-
-2\. **Validate** — check required columns, dates, transaction identifiers, and numeric values.
-
-3\. **Deduplicate** — remove exact duplicate records.
-
-4\. **Handle missing data** — replace missing descriptive values with `Unknown` where appropriate.
-
-5\. **Recover revenue** — calculate missing revenue when quantity, unit price, and discount are available.
-
-6\. **Validate calculations** — compare stored revenue against quantity multiplied by unit price and adjusted for discount.
-
-7\. **Transform** — construct the date, customer, product, and region dimensions and map their keys into the fact table.
-
-8\. **Load** — create a new SQLite warehouse and populate the dimension and fact tables.
-
-9\. **Verify** — check fact-table row counts and foreign-key integrity before replacing the existing database.
-
-
-
-The warehouse is rebuilt through a temporary database file. The temporary database is validated and closed before it replaces the destination database.
-
-
-
-### Data-Quality Rules
-
-
-
-* Exact duplicate records are removed.
-
-* Transactions with missing required identifiers or invalid numeric values are excluded.
-
-* Missing descriptive values, such as region, are replaced with `Unknown`.
-
-* Missing revenue is recalculated only when the required inputs are available.
-
-* Transactions with missing quantity are excluded when the quantity cannot be reliably recovered.
-
-* Revenue mismatches greater than the configured tolerance cause the pipeline to fail.
-
-* Foreign-key constraints are checked before the warehouse is accepted.
-
-
-
-### Observed Data-Quality Results
-
-
-
-| Check                                      | Result |
-
-| ------------------------------------------ | -----: |
-
-| Source records                             |    500 |
-
-| Exact duplicate copies removed             |      1 |
-
-| Transactions excluded for missing quantity |      1 |
-
-| Missing revenue recovered                  |      1 |
-
-| Transactions loaded                        |    498 |
-
-| Revenue mismatches                         |      0 |
-
-| Foreign-key violations                     |      0 |
-
-
-
-The source contains one transaction with a missing region. Its transaction is retained using the `Unknown` region rather than discarded.
-
-
-
-The duplicate order `O0067` is retained once. Order `O0016` is excluded because its quantity is missing and cannot be reliably determined from the available data. The missing revenue for `O0043` is recovered as KES 1,000.
-
-
-
-## SQL Analytics
-
-
-
-Analytical queries are stored in `queries.sql`.
-
-
-
-The current query collection covers:
-
-
-
-1\. Overall sales performance.
-
-2\. Monthly revenue trends.
-
-3\. Revenue by product category.
-
-4\. Revenue by region.
-
-5\. Best-selling products by units sold.
-
-6\. Top products by revenue.
-
-7\. Customer segment performance.
-
-8\. Individual customer performance.
-
-9\. Quarterly revenue.
-
-10\. Regional transaction counts.
-
-11\. Revenue reconciliation.
-
-12\. Foreign-key validation.
-
-
-
-## Business Insights
-
-
-
-The following findings were calculated from the 498 transactions in the warehouse.
-
-
-
-### Overall Sales Performance
-
-
-
-| Metric              |           Result |
-
-| ------------------- | ---------------: |
-
-| Transactions        |              498 |
-
-| Total revenue       | KES 3,560,990.00 |
-
-| Units sold          |            2,287 |
-
-| Average order value |     KES 7,150.58 |
-
-
-
-### Monthly Performance
-
-
-
-May was the strongest month in the available January-June 2026 data.
-
-
-
-| Month    |        Revenue |
-
-| -------- | -------------: |
-
-| January  | KES 598,100.00 |
-
-| February | KES 472,015.00 |
-
-| March    | KES 565,762.50 |
-
-| April    | KES 610,055.00 |
-
-| May      | KES 777,420.00 |
-
-| June     | KES 537,637.50 |
-
-
-
-May generated KES 777,420 in revenue from 100 orders. June revenue declined compared with May, warranting further investigation into order volume and order values.
-
-
-
-### Product Category Performance
-
-
-
-| Category    |          Revenue |
-
-| ----------- | ---------------: |
-
-| Electronics | KES 2,257,580.00 |
-
-| Accessories |   KES 910,080.00 |
-
-| Lifestyle   |   KES 271,980.00 |
-
-| Stationery  |   KES 121,350.00 |
-
-
-
-Electronics was the leading category, contributing approximately 63.4% of total revenue.
-
-
-
-### Product Performance
-
-
-
-* **Highest revenue:** USB-C Hub — KES 1,193,440.
-
-* **Second-highest revenue:** Keyboard — KES 1,064,140.
-
-* **Highest units sold:** Notebook — 514 units.
-
-
-
-These results demonstrate that the product with the highest unit sales is not necessarily the product with the highest revenue.
-
-
-
-### Regional Performance
-
-
-
-Nairobi generated the highest regional revenue at KES 866,212.50. Western had the highest number of orders, with 104 transactions.
-
-
-
-### Customer Segment Performance
-
-
-
-| Segment        |          Revenue |
-
-| -------------- | ---------------: |
-
-| Corporate      | KES 1,521,447.50 |
-
-| Retail         | KES 1,367,947.50 |
-
-| Small Business |   KES 671,595.00 |
-
-
-
-Corporate customers generated the highest revenue and had the highest average order value among the three segments.
-
-
-
-### Quarterly Performance
-
-
-
-| Quarter |          Revenue |
-
-| ------- | ---------------: |
-
-| Q1 2026 | KES 1,635,877.50 |
-
-| Q2 2026 | KES 1,925,112.50 |
-
-
-
-Revenue increased by approximately 17.7% from Q1 to Q2. The available data covers January through June 2026, so these results do not represent the full calendar year.
-
-
+* **Python:** ETL development and data processing.
+* **SQLite:** Data warehouse storage.
+* **SQL:** Data analysis and business reporting.
+* **Power BI Desktop:** Interactive dashboard and visual analytics.
+* **CSV:** Source data and Power BI table exports.
+* **Git and GitHub:** Version control and project sharing.
 
 ## Project Structure
 
-
-
 ```text
-
 02_sales_warehouse/
-+-- load_warehouse.py
-+-- run_queries.py
-+-- queries.sql
-+-- README.md
-`-- sales_warehouse.db
+│
+├── load_warehouse.py
+├── queries.sql
+├── run_queries.py
+├── sales_warehouse.db
+├── Retail_Sales_Dashboard.pbix
+├── README.md
+├── .gitignore
+│
+└── powerbi_data/
+    ├── fact_sales.csv
+    ├── dim_date.csv
+    ├── dim_product.csv
+    ├── dim_customer.csv
+    └── dim_region.csv
 ```
 
+The SQLite database and Power BI exports are generated project assets. The Python scripts implement the ETL and analytical workflows.
 
+## Data Pipeline
 
-The source CSV and shared Python virtual environment are located in the parent project directory.
+The project follows an Extract, Transform, Load (ETL) process.
 
+### 1. Extract
 
+The pipeline reads the raw retail sales data from a CSV source.
+
+### 2. Transform
+
+The transformation process includes data quality checks and cleaning operations:
+
+* Identifying duplicate orders.
+* Handling records with missing required quantities.
+* Recovering missing revenue where sufficient information is available.
+* Validating revenue calculations.
+* Preparing consistent keys and records for warehouse loading.
+
+### 3. Load
+
+The cleaned data is loaded into a SQLite database organised around a fact table and supporting dimension tables.
+
+### 4. Analyse
+
+SQL queries are executed against the warehouse to produce sales metrics and business insights.
+
+### 5. Visualise
+
+The warehouse tables are exported to CSV and imported into Power BI to create an interactive sales dashboard.
+
+## Data Warehouse Design
+
+The warehouse uses a dimensional model with a central fact table and four dimension tables.
+
+### Fact Table
+
+**`fact_sales`**
+
+Stores sales transaction measures and references to the associated dimensions.
+
+Key fields include:
+
+* `order_id`
+* `date_key`
+* `product_key`
+* `customer_key`
+* `region_key`
+* `quantity`
+* `revenue_kes`
+
+### Dimension Tables
+
+| Table          | Purpose                                                        |
+| -------------- | -------------------------------------------------------------- |
+| `dim_date`     | Supports time-based sales analysis.                            |
+| `dim_product`  | Provides product attributes for product and category analysis. |
+| `dim_customer` | Supports customer segment analysis.                            |
+| `dim_region`   | Provides regional information for geographical analysis.       |
+
+The fact table connects to the dimension tables through their respective keys. This design supports analytical queries without repeatedly processing the original raw CSV.
+
+## Data Quality and Validation
+
+The ETL pipeline was validated against the source dataset.
+
+| Validation Check                     | Result |
+| ------------------------------------ | -----: |
+| Source records                       |    500 |
+| Duplicate records removed            |      1 |
+| Record excluded for missing quantity |      1 |
+| Missing revenue recovered            |      1 |
+| Final transactions                   |    498 |
+| Revenue mismatches                   |      0 |
+| Foreign key violations               |      0 |
+
+The duplicate order identified during cleaning was `O0067`. The record excluded because of a missing quantity was `O0016`. Missing revenue was recovered for `O0043`, resulting in revenue of KES 1,000.
+
+These checks help ensure that the warehouse contains consistent transaction records and that its relationships remain valid.
+
+## SQL Analytics
+
+The project includes a collection of analytical SQL queries in `queries.sql`, executed through `run_queries.py`.
+
+The analyses cover sales performance across multiple business dimensions, including:
+
+* Total revenue and transaction counts.
+* Units sold and average order value.
+* Monthly revenue trends.
+* Revenue by product category.
+* Revenue by region.
+* Sales by customer segment.
+* Product performance by revenue and quantity.
+* Comparisons between reporting periods.
+
+The queries support both operational reporting and higher-level business analysis.
+
+## Key Business Findings
+
+The validated warehouse produced the following results.
+
+### Overall Performance
+
+| Metric              |        Result |
+| ------------------- | ------------: |
+| Total Revenue       | KES 3,560,990 |
+| Total Transactions  |           498 |
+| Units Sold          |         2,287 |
+| Average Order Value |  KES 7,150.58 |
+
+Average order value is calculated by dividing total revenue by the number of distinct transactions.
+
+### Revenue by Product Category
+
+| Category    |       Revenue |
+| ----------- | ------------: |
+| Electronics | KES 2,257,580 |
+| Accessories |   KES 910,080 |
+| Lifestyle   |   KES 271,980 |
+| Stationery  |   KES 121,350 |
+
+Electronics generated the highest revenue among the four product categories.
+
+### Revenue by Month
+
+| Month         |        Revenue |
+| ------------- | -------------: |
+| January 2026  |    KES 598,100 |
+| February 2026 |    KES 472,015 |
+| March 2026    | KES 565,762.50 |
+| April 2026    |    KES 610,055 |
+| May 2026      |    KES 777,420 |
+| June 2026     | KES 537,637.50 |
+
+May recorded the highest monthly revenue in the reporting period.
+
+### Quarterly Comparison
+
+| Quarter |          Revenue |
+| ------- | ---------------: |
+| Q1 2026 | KES 1,635,877.50 |
+| Q2 2026 | KES 1,925,112.50 |
+
+Revenue increased by approximately 17.7% from Q1 to Q2 2026.
+
+### Additional Findings
+
+* Nairobi generated the highest regional revenue at KES 866,212.50.
+* Western recorded the highest transaction count, with 104 transactions.
+* USB-C Hub generated the highest product revenue at KES 1,193,440.
+* Notebook recorded the highest units sold, with 514 units.
+* The Corporate customer segment generated the highest revenue at KES 1,521,447.50.
+
+These findings describe the processed dataset and should not automatically be interpreted as forecasts of future sales.
+
+## Power BI Dashboard
+
+The project includes an interactive Power BI report built using the warehouse data.
+
+**Dashboard file:** `Retail_Sales_Dashboard.pbix`
+
+Open this file using Power BI Desktop.
+
+### Dashboard Features
+
+The report includes KPI cards for:
+
+* Total Revenue.
+* Total Transactions.
+* Units Sold.
+* Average Order Value.
+
+It also includes visual analysis of:
+
+* Revenue by product category.
+* Revenue by region.
+* Revenue by customer segment.
+
+Interactive slicers allow users to filter the report by:
+
+* Region.
+* Product category.
+* Date.
+
+The slicers allow users to explore the data under different filtering conditions and examine how sales performance changes across the selected dimensions.
+
+### Power BI Data Exports
+
+The `powerbi_data/` directory contains CSV exports of the warehouse tables:
+
+* `fact_sales.csv`
+* `dim_date.csv`
+* `dim_product.csv`
+* `dim_customer.csv`
+* `dim_region.csv`
+
+These files provide the data used by the Power BI report.
+
+They are exported snapshots rather than live connections to the SQLite database. If the warehouse data changes, regenerate the exports and refresh the Power BI report to reflect the updated data.
 
 ## Running the Project
 
+Run these commands from the project directory in PowerShell.
 
+### 1. Run the ETL Pipeline
 
-Run these commands from the `02_sales_warehouse` directory in PowerShell.
-
-
-
-### 1. Build the warehouse
-
-
+If the project's virtual environment is located in the parent directory, run:
 
 ```powershell
-
 & "..\.venv\Scripts\python.exe" .\load_warehouse.py
-
 ```
 
+This runs the warehouse loading process. Review the script's output to confirm that processing and validation complete successfully.
 
-
-The script reads the source CSV, validates the records, and rebuilds `sales_warehouse.db`.
-
-
-
-### 2. Execute the analytical queries
-
-
-
-Use the Python SQLite execution script to run the statements in `queries.sql` and display their results.
-
-
-
-### 3. Validate the database
-
-
-
-Check the fact-table row count:
-
-
+### 2. Execute the SQL Analytics
 
 ```powershell
-
-@'
-
-import sqlite3
-
-
-
-with sqlite3.connect("sales_warehouse.db") as conn:
-
-    print("Fact rows:", conn.execute(
-
-        "SELECT COUNT(*) FROM fact_sales"
-
-    ).fetchone()\[0])
-
-
-
-    print("Foreign-key violations:",
-
-          conn.execute("PRAGMA foreign_key_check").fetchall())
-
-'@ | & "..\.venv\Scripts\python.exe" -
-
+& "..\.venv\Scripts\python.exe" .\run_queries.py
 ```
 
+This runs the analytical queries defined in `queries.sql`.
 
+### 3. Open the Power BI Dashboard
 
-The validated database contains 498 fact rows and no foreign-key violations.
+Open `Retail_Sales_Dashboard.pbix` in Power BI Desktop.
 
+To refresh the report after regenerating the CSV exports, use Power BI Desktop's refresh functionality and confirm that the imported files point to the correct `powerbi_data/` directory.
 
+**Note:** These commands assume the Python virtual environment is located in the parent directory as `.venv`.
+## Repository Notes
+
+* `.gitignore` excludes virtual environments, Python cache files, temporary files, and selected local backup files.
+* The Power BI report and CSV exports are included as project deliverables.
+* The SQLite database is the local warehouse used by the analytical workflow.
+* Regenerate dependent exports and refresh the report when the underlying warehouse data changes.
 
 ## Future Improvements
 
+Potential extensions to the project include:
 
+* Automating ETL execution and data refreshes.
+* Adding automated data quality tests.
+* Expanding the analytical SQL library.
+* Adding incremental loading for new sales records.
+* Improving documentation of the warehouse schema.
+* Introducing scheduled Power BI refreshes through a suitable deployment setup.
 
-Potential extensions include:
+## Author
 
+**GitHub:** [mr-wes](https://github.com/mr-wes)
 
+## License
 
-* Automating scheduled ETL execution.
-
-* Adding incremental loading instead of rebuilding the warehouse.
-
-* Creating automated data-quality tests.
-
-* Building a dashboard for monthly and regional performance.
-
-* Adding more source data to support longer-term trend analysis.
-
-* Introducing logging and structured ETL run reports.
-
-
-
-## Conclusion
-
-
-
-This project demonstrates an end-to-end data engineering workflow: extracting and cleaning raw sales data, applying data-quality rules, transforming it into a dimensional model, loading a SQLite warehouse, validating data integrity, and using SQL to generate actionable business insights.
-
-
-
-
-
-
+No license has been specified for this project. Refer to the repository's licensing terms before reusing or redistributing its contents.
