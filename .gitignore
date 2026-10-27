@@ -1,0 +1,22 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# Local backup files
+load_warehouse_backup.py
+load_warehouse_backup2.py
+queries_backup.sql
